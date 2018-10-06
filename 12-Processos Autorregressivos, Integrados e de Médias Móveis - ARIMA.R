@@ -43,7 +43,7 @@ abline(reglinEMP, col="Blue")                         #Insere a linha de regress
 residuosEMP <- reglinEMP$residuals                    #Salva os resíduos no vetor residuosEMP
 reglinEMPres <- lm(residuosEMP ~ Anos)                #Regressão linear dos resíduos em função do tempo
 plot(residuosEMP,type="l")                            #Gráfico dos resíduos
-abline(reglinEMPres, col="Blue")                      #Insere a linha de regressão linear dos resíduos
+abline(reglinEMPres, col="red")                      #Insere a linha de regressão linear dos resíduos
 
 
 #Removendo Tendência por meio da diferença
@@ -175,8 +175,75 @@ Modelo <-c(list("arima123","arima120","arima121",
 Resultados <- data.frame(Modelo,AIC,BIC)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
 Resultados <- data.frame(Modelo,AIC,BIC)  
 
-  
+
 #Análise para o Câmbio
+plot(CAMBIO, type = "l")                            #Cria gráfico para o CAMBIO
+CAMBIO <- ts(CAMBIO, start = 1994, frequency = 1)  #Define como Série Temporal
+plot(CAMBIO, main="Câmbio no Brasil", 
+     ylab="Variação Cambial", 
+     xlab="Ano")                                      #Cria gráfico da Série Temporal
+
+acf(CAMBIO)                                          #Função de Autocorrelação
+pacf(CAMBIO)                                         ##Função de Autocorrelação Parcial
+reglinCam <- lm(CAMBIO ~ Anos)                       #Regressão linear simples do Cambio em relação ao tempo
+reglinCam                                             #Exibe os resultados da regressão linear
+summary(reglinCam)
+plot(CAMBIO)                                         #Gráfcio dos dados
+abline(reglinCam, col="red")                         #Insere a linha de regressão linear estimada
+
+
+#Removendo Tendência
+
+residuosCam <- reglinCam$residuals                    #Salva os resíduos no vetor residuosCAM
+reglinCam <- lm(residuosCam ~ Anos)                #Regressão linear dos resíduos em função do tempo
+plot(residuosCam,type="l")                            #Gráfico dos resíduos
+abline(reglinCam, col="red")                      #Insere a linha de regressão linear dos resíduos
+
+
+#Removendo Tendência por meio da diferença
+
+pdCambio <- diff(CAMBIO)                                #Calcula a primeira diferença da série de dados
+diferencaC <- (data.frame(CAMBIO[2:18],pdCambio))       #Exibe a tabela da série original coma diferença <- 
+diferencaC <- (data.frame(EMPREGO[2:18],pdCambio))
+
+diferencaC <- ts(diferencaC, start = 1994, frequency = 1)  #Define serie temporal para a tabela diferenca1
+plot(diferencaC, plot.type="single", col=c("Black","Green")) #Cria o grafico com as duas series
+plot(pdCambio, type="l")                                   #Cria gr´pafico somente para a serie da diferença
+
+#Teste Dick-Fuller Aumentado conferindo se a serie se tornou estacionaria
+
+pdCambio1 <- diff(CAMBIO)                                            #Calculando-se a primeira diferença
+TesteDF_Cambio1_trend <- ur.df(CAMBIO, "trend", lags = 1)         #Teste DF-DickFuller com drift e com tendencia
+summary(TesteDF_Cambio1_trend) 
+
+pdcambio2 <- diff(diff(CAMBIO))                                      #Calculando-se a segunda diferença
+TesteDF_cambio2_trend <- ur.df(pdcambio2, "trend", lags = 1)         #Teste DF-DickFuller com drift e com tendencia
+summary(TesteDF_cambio2_trend)
+
+#Estimando a série temporal
+
+#ARMA
+arima121c <- arima(CAMBIO, c(1,2,1))
+arima122c <- arima(CAMBIO, c(1,2,2))
+
+#MA
+arima021c <- arima(CAMBIO, c(0,2,1))
+arima022c <- arima(CAMBIO, c(0,2,2))
+
+#AR
+arima120c <- arima(CAMBIO, c(1,2,0))
+
+#Escolher o melhor modelo com base no menor AIC/BIC
+estimacoes <- list(arima120c,arima121c,
+                   arima122c,arima021c,arima022c)
+
+AIC <- sapply(estimacoes, AIC)
+BIC <- sapply(estimacoes, BIC)
+Modelo <-c(list("arima120c","arima121c",
+                "arima122c","arima021c","arima022c")) 
+Resultados <- data.frame(Modelo,AIC,BIC)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+Resultados <- data.frame(Modelo,AIC,BIC)
+
 
 #Análise para o PIB
 
